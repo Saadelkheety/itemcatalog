@@ -1,0 +1,21 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    edit {{item.name}}
+{% endblock %}
+
+{% block body %}
+<h1>edit {{item.name}}</h1>
+<p>{{ main_category | selectattr('id','equalto', item.main_id) | map(attribute='name')|join(', ') }} Category</p>
+<form action="{{ url_for('edit',item_id=item.id) }}" method="post">
+    <div class="form-group">
+        <input class="form-control" maxlength="20" name="name" value="{{item.name}}">
+    </div>
+    <div class="form-group">
+        <textarea class="form-control" rows="3" id="description" name="description" maxlength="250">{{item.description}}</textarea>
+    </div>
+    <div class="form-group">
+        <input class="btn btn-warning" type="submit" value="Edit">
+    </div>
+</form>
+{% endblock %}

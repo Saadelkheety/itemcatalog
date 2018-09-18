@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<title>{% block title %}{% endblock %}</title>
+	<meta content="width=device-width, initial-scale=1" name="viewport">
+	<meta content={% block content %}{% endblock %}" name="description">
+	<meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+	<link rel="icon" href="img/logo.png" type="image/png">
+	<link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
+	<link href="{{ url_for('static', filename='css/stylesheet.css') }}" rel="stylesheet">
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+	<script src="{{ url_for('static', filename= 'js/bootstrap.min.js')}}"></script>
+	<link href="https://use.fontawesome.com/releases/v5.1.0/css/all.css" rel="stylesheet">
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-sm bg-light sticky-top">
+		<a class="navbar-brand" href="{{url_for('index')}}"><h1>Welcome to catalog app!</h1></a>
+
+    </nav>
+    <div class="container">
+        {% block body %}
+        {% endblock %}
+    </div>
+</body>
+</html>

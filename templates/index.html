@@ -1,0 +1,27 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    catalog app
+{% endblock %}
+
+{% block body %}
+<div class="row">
+    <div class="col-6">
+        <h2>Categories</h2>
+        <ul>
+            {% for item in main_category %}
+                <li><h3><a href="{{url_for('sub', main_id=item.id)}}">{{ item.name }}</a></h3></li>
+            {% endfor %}
+        </ul>
+    </div>
+    <div class="col-6">
+        <a href="{{url_for('add')}}">add an Item</a>
+        <h3>Latest items</h3>
+        <ul>
+            {% for item in latest_items %}
+                <li><a href="{{url_for('item',item_id=item.id)}}">{{item.name}}</a><span> ({{ main_category | selectattr('id','equalto', item.main_id) | map(attribute='name')|join(', ') }})</span></li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+{% endblock %}
