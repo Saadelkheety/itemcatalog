@@ -68,6 +68,8 @@ def getUserID(email):
 
 
 xrange = range
+
+
 # Create anti-forgery state token
 @app.route('/login')
 def showLogin():
@@ -105,7 +107,7 @@ def fbconnect():
     # print "url sent for API access:%s"% url
     # print "API JSON result: %s" % result
     data = json.loads(result)
-    print("this is fb-api",data)
+    print("this is fb-api", data)
     login_session['provider'] = 'facebook'
     login_session['username'] = data["name"]
     login_session['email'] = data["email"]
