@@ -367,7 +367,7 @@ def edit(item_id):
     main_category = session.query(Main_Category).all()
     required_item = session.query(Sub_Category).filter_by(id=item_id).first()
     edited_picture = session.query(ItemPicture)\
-                    .filter_by(item_id=required_item.id).first()
+                            .filter_by(item_id=required_item.id).first()
     if required_item.user_id != login_session['user_id']:
         return """<script>function myFunction()
         {alert('You are not authorized to edit this item.
