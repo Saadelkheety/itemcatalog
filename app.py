@@ -3,7 +3,6 @@ from flask import flash
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from database_setup import Base, Main_Category, Sub_Category, User, ItemPicture
-from database_setup import createUser, getUserInfo, getUserID
 from sqlalchemy_imageattach.context import store_context
 from sqlalchemy_imageattach.stores.fs import HttpExposedFileSystemStore
 from sqlalchemy_imageattach.context import (pop_store_context,
@@ -33,6 +32,8 @@ import requests
 from flask import make_response
 
 app = Flask(__name__)  # instaniate an app
+app.config.from_mapping(
+        SECRET_KEY='dev')
 store = HttpExposedFileSystemStore('itemimages', '/itemimages')
 app.wsgi_app = store.wsgi_middleware(app.wsgi_app)
 
@@ -43,6 +44,30 @@ DBSession = sessionmaker(bind=engine)
 session = DBSession()
 
 
+# User helper Functions
+def createUser(login_session):
+    newUser = User(name=login_session['username'], email=login_session[
+                   'email'], picture=login_session['picture'])
+    session.add(newUser)
+    session.commit()
+    user = session.query(User).filter_by(email=login_session['email']).one()
+    return user.id
+
+
+def getUserInfo(user_id):
+    user = session.query(User).filter_by(id=user_id).one()
+    return user
+
+
+def getUserID(email):
+    try:
+        user = session.query(User).filter_by(email=email).one()
+        return user.id
+    except:
+        return None
+
+
+xrange = range
 # Create anti-forgery state token
 @app.route('/login')
 def showLogin():
@@ -59,7 +84,7 @@ def fbconnect():
         response.headers['Content-Type'] = 'application/json'
         return response
     access_token = request.data
-    print "access token received %s " % access_token
+    print ("access token received %s " % access_token)
 
     app_id = json.loads(open('fb_client_secrets.json', 'r').read())[
         'web']['app_id']
@@ -72,7 +97,7 @@ def fbconnect():
     # Use token to get user info from API
     userinfo_url = "https://graph.facebook.com/v2.8/me"
 
-    token = result.split(',')[0].split(':')[1].replace('"', '')
+    token = result.decode('utf8').split(',')[0].split(':')[1].replace('"', '')
 
     url = 'https://graph.facebook.com/v2.8/me?access_token=%s&fields=name,id,email' % token  # noqa
     h = httplib2.Http()
@@ -80,6 +105,7 @@ def fbconnect():
     # print "url sent for API access:%s"% url
     # print "API JSON result: %s" % result
     data = json.loads(result)
+    print("this is fb-api",data)
     login_session['provider'] = 'facebook'
     login_session['username'] = data["name"]
     login_session['email'] = data["email"]
@@ -186,7 +212,7 @@ def gconnect():
     if result['issued_to'] != CLIENT_ID:
         response = make_response(
             json.dumps("Token's client ID does not match app's."), 401)
-        print "Token's client ID does not match app's."
+        print ("Token's client ID does not match app's.")
         response.headers['Content-Type'] = 'application/json'
         return response
 
@@ -230,7 +256,7 @@ def gconnect():
     output += ''' " style = "width: 300px;
      height: 300px;border-radius: 150px;
      -webkit-border-radius: 150px;-moz-border-radius: 150px;"> '''
-    print "done!"
+    print ("done!")
     return output
 
 
@@ -239,7 +265,7 @@ def gconnect():
 def gdisconnect():
     access_token = login_session.get('access_token')
     if access_token is None:
-        print 'Access Token is None'
+        print ('Access Token is None')
         response = make_response(json.dumps(
             'Current user not connected.'), 401)
         response.headers['Content-Type'] = 'application/json'
@@ -464,6 +490,6 @@ def itemJSON(id):
 
 
 if __name__ == '__main__':
-    app.secret_key = 'super secret key'
+    app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
     app.debug = True
     app.run(host='0.0.0.0', port=5000)
