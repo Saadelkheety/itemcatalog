@@ -1,7 +1,9 @@
 from flask import Flask, render_template, request, redirect, url_for, jsonify
+from flask import flash
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from database_setup import Base, Main_Category, Sub_Category, User, ItemPicture
+from database_setup import createUser, getUserInfo, getUserID
 from sqlalchemy_imageattach.context import store_context
 from sqlalchemy_imageattach.stores.fs import HttpExposedFileSystemStore
 from sqlalchemy_imageattach.context import (pop_store_context,
@@ -232,29 +234,6 @@ def gconnect():
     return output
 
 
-# User helper Functions
-def createUser(login_session):
-    newUser = User(name=login_session['username'], email=login_session[
-                   'email'], picture=login_session['picture'])
-    session.add(newUser)
-    session.commit()
-    user = session.query(User).filter_by(email=login_session['email']).one()
-    return user.id
-
-
-def getUserInfo(user_id):
-    user = session.query(User).filter_by(id=user_id).one()
-    return user
-
-
-def getUserID(email):
-    try:
-        user = session.query(User).filter_by(email=email).one()
-        return user.id
-    except:
-        return None
-
-
 # DISCONNECT - Revoke a current user's token and reset their login_session
 @app.route('/gdisconnect')
 def gdisconnect():
@@ -315,24 +294,34 @@ def add():
     if 'username' not in login_session:
         return redirect('/login')
     if request.method == 'POST':
-        newItem = Sub_Category(
-                                name=request.form['name'],
-                                description=request.form['description'],
-                                main_id=request.form['main_id'],
-                                user_id=login_session['user_id'])
+        if request.form['name']:
+            newItem = Sub_Category(
+                                    name=request.form['name'],
+                                    description=request.form['description'],
+                                    main_id=request.form['main_id'],
+                                    user_id=login_session['user_id'])
 
-        if 'img' not in request.files:
-            session.add(newItem)
-            session.commit()
+            if 'img' not in request.files:
+                session.add(newItem)
+                session.commit()
+            else:
+                try:
+                    with store_context(store):
+                        newItem.picture.from_file(request.files['img'])
+                        session.add(newItem)
+                        session.commit()
+                except Exception:
+                    raise
+            flash(
+                    "the item has been added successfully, %s."
+                    % login_session['username'])
+            return redirect(url_for('index'))
         else:
-            try:
-                with store_context(store):
-                    newItem.picture.from_file(request.files['img'])
-                    session.add(newItem)
-                    session.commit()
-            except Exception:
-                raise
-        return redirect(url_for('index'))
+            flash(
+                    "Welcome %s, You must add a name at least to add an item."
+                    % login_session['username'])
+            main_category = session.query(Main_Category).all()
+            return render_template("add.html", main_category=main_category)
     else:
         main_category = session.query(Main_Category).all()
         return render_template("add.html", main_category=main_category)
@@ -371,10 +360,12 @@ def edit(item_id):
     if required_item.user_id != login_session['user_id']:
         return """<script>function myFunction()
         {alert('You are not authorized to edit this item.
-        Please create your own item in order to edit.');}
+        Please create your own item in order to edit.');
+        window.location.href = '/';}
         </script><body onload='myFunction()'>"""
     if request.method == 'POST':
-        required_item.name = request.form['name']
+        if request.form['name']:
+            required_item.name = request.form['name']
         required_item.description = request.form['description']
         if 'img' not in request.files:
             session.add(required_item)
@@ -388,6 +379,9 @@ def edit(item_id):
                     session.commit()
             except Exception:
                 raise
+            flash(
+                    "the Item has been edited successfully, %s."
+                    % login_session['username'])
         return redirect(url_for('item', item_id=required_item.id))
     else:
         return render_template(
@@ -406,7 +400,8 @@ def delete(item_id):
     if required_item.user_id != login_session['user_id']:
         return """<script>function myFunction()
         {alert('You are not authorized to edit this item.
-        Please create your own item in order to edit.');}
+        Please create your own item in order to edit.');
+        window.location.href = '/';}
         </script><body onload='myFunction()'>"""
     push_store_context(store)
     session.delete(required_item)
@@ -432,20 +427,40 @@ def disconnect():
         del login_session['picture']
         del login_session['user_id']
         del login_session['provider']
-        login_session['loged'] = False
+        flash("You are logged out")
         return redirect(url_for('index'))
     else:
         flash("You were not logged in")
         return redirect(url_for('index'))
 
+
 # Api end_point
-
-
+# to view all items
 @app.route('/items/JSON')
 def itemsJSON():
     items = session.query(Sub_Category).all()
-    jsonify(items=[r.serialize for r in items])
     return jsonify(items=[r.serialize for r in items])
+
+
+# to view a category items by its id
+@app.route('/category/<int:id>/JSON')
+def categoryJSON(id):
+    items = session.query(Sub_Category).filter_by(main_id=id).all()
+    category = session.query(Main_Category).filter_by(id=id).first()
+    return jsonify(items=[r.serialize for r in items])
+
+
+# to view an item by its id
+@app.route('/item/<int:id>/JSON')
+def itemJSON(id):
+    item = session.query(Sub_Category).filter_by(id=id).first()
+    return jsonify({
+            "name": item.name,
+            "description": item.description,
+            "id": item.id,
+            "category_id": item.main_id,
+            "created_by": item.user_id
+        })
 
 
 if __name__ == '__main__':
