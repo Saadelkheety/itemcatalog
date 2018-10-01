@@ -1,9 +1,6 @@
 from sqlalchemy import Column, ForeignKey, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
-from sqlalchemy_imageattach.entity import Image, image_attachment
-
-
 from sqlalchemy import create_engine
 
 Base = declarative_base()
@@ -39,7 +36,7 @@ class Sub_Category(Base):
     maincategory = relationship(Main_Category)
     user_id = Column(Integer, ForeignKey('user.id'))
     user = relationship(User)
-    picture = image_attachment('ItemPicture')
+    # picture = image_attachment('ItemPicture')
 
     @property
     def serialize(self):
@@ -51,10 +48,10 @@ class Sub_Category(Base):
             'main_id': self.main_id,
         }
 
-class ItemPicture(Base, Image):
+'''class ItemPicture(Base, Image):
     __tablename__ = 'item_picture'
-    item_id = Column(Integer, ForeignKey('subcategory.id'), primary_key=True)
-    subcategory = relationship('Sub_Category')
+    item_id = Column(Integer, ForeignKey('item.id'), primary_key=True)
+    user = relationship('Sub_Category')'''
 
 
 engine = create_engine('sqlite:///database.db')

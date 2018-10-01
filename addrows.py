@@ -18,6 +18,10 @@ DBSession = sessionmaker(bind=engine)
 # session.rollback()
 session = DBSession()
 
+name = Main_Category(name="Landmarks")
+session.add(name)
+session.commit()
+
 name = Main_Category(name="Restaurants")
 session.add(name)
 session.commit()
@@ -26,7 +30,11 @@ name = Main_Category(name="Cafes")
 session.add(name)
 session.commit()
 
-name = Main_Category(name="Workstations")
+name = Main_Category(name="Coworking space")
+session.add(name)
+session.commit()
+
+name = Main_Category(name="Cinemas")
 session.add(name)
 session.commit()
 
@@ -42,7 +50,11 @@ name = Main_Category(name="Markets")
 session.add(name)
 session.commit()
 
-name = Main_Category(name="Landmarks")
+name = Main_Category(name="Clubs")
+session.add(name)
+session.commit()
+
+name = Main_Category(name="Others")
 session.add(name)
 session.commit()
 

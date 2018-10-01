@@ -1,0 +1,136 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Login into catalog app
+{% endblock %}
+{% block head %}
+<!--LOAD PRE-REQUISITES FOR GOOGLE SIGN IN -->
+ <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+<script src="//apis.google.com/js/platform.js?onload=start"> </script>
+<!-- END PRE-REQUISITES FOR GOOGLE SIGN IN -->
+{% endblock %}
+{% block body %}
+
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) return;
+  js = d.createElement(s); js.id = id;
+  js.src = 'https://connect.facebook.net/en_US/sdk.js#xfbml=1&version=v3.1&appId=1040210689473533&autoLogAppEvents=1';
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+<script>
+//  Facebook SDK for Javascript
+window.fbAsyncInit = function() {
+FB.init({
+  appId      : '1040210689473533',
+  cookie     : true,
+  xfbml      : true,
+  version    : 'v3.1'
+});
+
+FB.AppEvents.logPageView();
+
+};
+
+(function(d, s, id){
+ var js, fjs = d.getElementsByTagName(s)[0];
+ if (d.getElementById(id)) {return;}
+ js = d.createElement(s); js.id = id;
+ js.src = "https://connect.facebook.net/en_US/sdk.js";
+ fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));
+
+function sendTokenToServer() {
+  var access_token = FB.getAuthResponse()['accessToken'];
+  console.log(access_token)
+  console.log('Welcome!  Fetching your information.... ');
+  FB.api('/me', function(response) {
+    console.log('Successful login for: ' + response.name);
+   $.ajax({
+    type: 'POST',
+    url: '/fbconnect?state={{STATE}}',
+    processData: false,
+    data: access_token,
+    contentType: 'application/octet-stream; charset=utf-8',
+    success: function(result) {
+      // Handle or verify the server response if necessary.
+      if (result) {
+        $('#result').html('Login Successful!</br>'+ result + '</br>Redirecting...')
+       setTimeout(function() {
+        window.location.href = "/home";
+       }, 4000);
+
+
+    } else {
+      $('#result').html('Failed to make a server-side call. Check your configuration and console.');
+       }
+
+    }
+
+});
+
+
+  });
+}
+</script>
+<div class="login">
+<div id="fb-root"></div>
+<div class="fb-login-button" data-max-rows="1" data-size="large" data-button-type="continue_with" data-show-faces="true" data-auto-logout-link="true" data-use-continue-as="true" scope="public_profile,email" onlogin="sendTokenToServer();"></div>
+
+<!-- GOOGLE PLUS SIGN IN BUTTON-->
+
+    <div class="google" id="signinButton">
+        <span  class="g-signin"
+            data-scope="openid email"
+            data-clientid="910211232690-h745vqsgteagt7tqcrh865f0ga4297aj.apps.googleusercontent.com"
+            data-redirecturi="postmessage"
+            data-accesstype="offline"
+            data-cookiepolicy="single_host_origin"
+            data-callback="signInCallback"
+            data-approvalprompt="force">
+			
+         </span>
+ 
+	</div>
+	
+</div>
+    <div id="result"></div>
+
+    <script>
+    function signInCallback(authResult) {
+      if (authResult['code']) {
+
+        // Hide the sign-in button now that the user is authorized
+        $('#signinButton').attr('style', 'display: none');
+
+        // Send the one-time-use code to the server, if the server responds, write a 'login successful' message to the web page and then redirect back to the main  page
+        $.ajax({
+          type: 'POST',
+          url: '/gconnect?state={{STATE}}',
+          // Setting processData to false indicates that we do not want jQuery to process the response into a string.
+          processData: false,
+          data: authResult['code'],
+          // indicates that we are sending an arbitrary binary stream of data.
+          contentType: 'application/octet-stream; charset=utf-8',
+          // When we receive a 200 or a successful response code from our server
+          success: function(result) {
+            // Handle or verify the server response if necessary.
+            if (result) {
+              $('#result').html('Login Successful!</br>'+ result + '</br>Redirecting...')
+             setTimeout(function() {
+              window.location.href = "/home";
+             }, 4000);
+            }
+            else if (authResult['error']) {
+                console.log('There was an error: ' + authResult['error']);
+            }
+            else {
+                $('#result').html('Failed to make a server-side call. Check your configuration and console.');
+            }
+          }
+      });
+  }
+}
+    </script>
+
+{% endblock %}

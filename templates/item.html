@@ -6,10 +6,28 @@
 
 {% block body %}
 <div class="jumbotron">
-    <h2>{{item.name}}</h2>
-    <p> ({{ main_category | selectattr('id','equalto', item.main_id) | map(attribute='name')|join(', ') }})</p>
-    <p>{{item.description}}</p>
-    <P> <a href="{{url_for('edit', item_id=item.id)}}">Edit</a> | <a data-toggle="modal" href="#delete_Modal">Delete</a>
+	<div class="row container">
+		<div class="col">
+		<h2>{{item.name}}</h2>
+		<p> ({{ main_category | selectattr('id','equalto', item.main_id) | map(attribute='name')|join(', ') }})</p>
+		<p>{{item.description}}</p>
+		{%if session['user_id'] == item.user_id %}
+		<P> <a href="{{url_for('edit', item_id=item.id)}}">Edit</a> | <a data-toggle="modal" href="#delete_Modal">Delete</a>
+		{% endif %}
+		</div>
+		{% if picture_url != 'none'%}
+		<div class="col-4">
+			<img class=" img-fluid" src="{{ picture_url }}" alt=" {{ picture_url }} ">
+		</div>
+		{% endif %}
+		<div class="row container">
+			<div class= col-12>
+			<span>This Item has been created by {{creator.name}}</span>
+			<img id="imgitem" class="rounded-circle img-fluid" src="{{creator.picture}}" alt=" Creator picture">
+			</div>
+		</div>
+	</div>
+	
 </div>
 <!-- The Modal -->
   <div class="modal fade" id="delete_Modal">
@@ -40,3 +58,4 @@
     </div>
   </div>
 {% endblock %}
+ 
