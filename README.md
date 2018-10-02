@@ -6,33 +6,20 @@ The Item Catalog project consists of developing an application that provides a l
  - After logging in, a user has the ability to add, update, or delete item info.
  - The application provides a JSON endpoint.
  
- ## Installing
- For the app to work you must install:
+ ## Json End_points
+ tha app provide json end points in many forms:
+ - {{host}}/items/json >> to display all items
+ - {{host}}/category/<int:id>/JSON >> to view a category of items by its id
+ - {{host}}/item/<int:id>/JSON >> to view an item by its id
  
- - bleach==2.1.3
- - certifi==2018.4.16
- - chardet==3.0.4
- - click==6.7
- - Flask==1.0.2
- - html5lib==1.0.1
- - idna==2.6
- - itsdangerous==0.24
- - Jinja2==2.10
- - MarkupSafe==1.0
- - psycopg2==2.7.5
- - pycodestyle==2.4.0
- - PyJWT==1.6.4
- - PySocks==1.6.8
- - pytz==2018.4
- - requests==2.18.4
- - six==1.11.0
- - SQLAlchemy==1.2.11
- - twilio==6.14.4
- - urllib3==1.22
- - virtualenv==16.0.0
- - virtualenvwrapper-win==1.2.5
- - webencodings==0.5.1
- - Werkzeug==0.14.1
- - SQLAlchemy-ImageAttach==1.1.0
- - oauth2client==4.1.3
- - gunicorn==19.9.0
+ ## Installing
+ for ubuntu run command :
+  - sudo apt-get install imagemagick
+ ### For the app to work you must run commands:
+ - pip install -r requirements.txt
+ ### to setup database you must run commands:
+ - python database_setup.py
+ - python add_main_category.py
+ ### finally to run the app :
+ - python app.py
+ 
